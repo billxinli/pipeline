@@ -21,6 +21,7 @@ export default {
     'supportsTablet': true
   },
   'android': {
+    package: 'li.bill.pipeline',
     'adaptiveIcon': {
       'foregroundImage': './assets/adaptive-icon.png',
       'backgroundColor': '#FFFFFF'
