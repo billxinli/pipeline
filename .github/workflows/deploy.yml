@@ -134,8 +134,9 @@ jobs:
             console.log(JSON.stringify(context,undefined,2))
             const { data: { upload_url } } = await github.repos.getReleaseByTag({
               ...context.repo,
-              tag: context.payload.inputs.tag
+              tag: context.payload.release.tag_name
             })
+            console.log(JSON.stringify(upload_url,undefined,2))
 
             core.exportVariable('UPLOAD_URL', upload_url);
 
