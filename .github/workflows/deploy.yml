@@ -126,8 +126,8 @@ jobs:
 
       - uses: ahmadnassri/action-npm-global-path@v1
 
-      - name: Install Turtle
-        run: npm install --silent --no-progress --global turtle-cli
+      - name: Install npm dependencies
+        run: npm install --silent --no-progress --global turtle-cli expo-cli
 
       - name: Unlock keystore
         run: echo $ANDROID_KEYSTORE | base64 -d > keystore.jks
