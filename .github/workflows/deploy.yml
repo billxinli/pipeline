@@ -140,6 +140,15 @@ jobs:
 
             core.exportVariable('UPLOAD_URL', upload_url);
 
+      - name: Upload apk 2
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ env.UPLOAD_URL }}
+          asset_path: package.json
+          asset_name: package.json
+          asset_content_type: text/plain
 
       - name: Install npm dependencies
         run: npm install --silent --no-progress --global turtle-cli expo-cli
