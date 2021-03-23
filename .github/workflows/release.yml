@@ -1,0 +1,58 @@
+name: release
+
+on:
+  push:
+    branches:
+      - master
+
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: The branch, tag or SHA to use
+        required: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    timeout-minutes: 5
+
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: ahmadnassri/action-workflow-run-wait@v1
+
+      - uses: ahmadnassri/action-workflow-queue@v1
+
+      - uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 12
+
+      - uses: ahmadnassri/action-npm-global-path@v1
+        with:
+          path: ~/.npm
+
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.ref }}
+
+      - uses: ahmadnassri/action-github-registry-npm-proxy@v2
+        with:
+          token: ${{ secrets.GH_PACKAGES_TOKEN_READ }}
+          path: ${{ github.workspace }}/.npmrc
+          export_user_config: true
+
+      - uses: actions/cache@v2.1.4
+        with:
+          key: ${{ hashFiles('**/package-lock.json') }}
+          path: |
+            ~/.npm
+
+      - uses: ahmadnassri/action-semantic-release@v1
+        id: release
+        env:
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }} # use repo-specific token
+          GITHUB_TOKEN: ${{ secrets.GH_ORG_TOKEN_WRITE }} # use special token to trigger follow-up actions
+
