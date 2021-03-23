@@ -1,0 +1,12 @@
+runtime: nodejs12
+env: standard
+
+entrypoint: node index.js
+
+handlers:
+  - url: /.*
+    secure: always
+    script: auto
+
+env_variables:
+  NODE_ENV: $NODE_ENV

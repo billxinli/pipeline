@@ -1,0 +1,168 @@
+name: deploy
+
+on:
+  release:
+    types: [ created ]
+
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The tag to use
+        required: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  deploy:
+    timeout-minutes: 30
+
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 12
+
+      - uses: ahmadnassri/action-github-registry-npm-proxy@v1
+        with:
+          github-token: ${{ secrets.GH_PACKAGES_TOKEN_READ }}
+
+      - uses: google-github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.GOOGLE_CREDENTIALS}}
+          export_default_credentials: true
+
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.tag }}
+
+      - uses: actions/cache@v2.1.4
+        with:
+          key: app-${{ hashFiles('**/package-lock.json') }}
+          path: |
+            ~/.npm
+            .expo
+            .next/cache
+            node_modules
+
+      - uses: ahmadnassri/action-npm-global-path@v1
+
+      - name: Install Expo
+        run: npm install --silent --no-progress --global expo-cli
+
+      - run: npm ci --silent --no-progress
+
+      - name: Expo export [staging]
+        run: expo export --force --public-url https://staging-dot-assets-dot-rn-host.nn.r.appspot.com/ --output-dir .assets
+#        env:
+#          VERSION: 0.0.0
+
+      - name: Prepare app.yml [staging]
+        run: envsubst < assets.template.yaml > app.yaml
+        env:
+          NODE_ENV: staging
+
+      - name: Deploy asset [staging]
+        uses: google-github-actions/deploy-appengine@main
+        with:
+          credentials: ${{ secrets.GOOGLE_CREDENTIALS}}
+          project_id: ${{ secrets.PROJECT_ID }}
+          version: staging
+          promote: false
+#
+#      - name: Format Version [production]
+#        run: echo "VERSION=${{ github.event.inputs.tag || github.event.release.tag_name }}" | tr . - >> $GITHUB_ENV
+#
+#      - name: Expo export [production]
+#        run: expo export --force --public-url https://template-app.joinanswerable.com/app --output-dir .app
+#        env:
+#          VERSION: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+#
+#      - name: Prepare app.yml [production]
+#        run: envsubst < app.template.yaml > app.yaml
+#        env:
+#          NODE_ENV: production
+#
+#      - name: Deploy [production]
+#        uses: google-github-actions/deploy-appengine@main
+#        with:
+#          credentials: ${{ secrets.GOOGLE_CREDENTIALS}}
+#          project_id: ${{ secrets.PROJECT_ID }}
+#          version: ${{ env.VERSION }}
+#          promote: true
+#
+#  build-android:
+#    timeout-minutes: 30
+#
+#    runs-on: ubuntu-20.04
+#
+#    steps:
+#      - uses: actions/setup-java@v1
+#        with:
+#          java-version: 8
+#
+#      - uses: actions/setup-node@v2.1.5
+#        with:
+#          node-version: 12
+#
+#      - uses: ahmadnassri/action-github-registry-npm-proxy@v1
+#        with:
+#          github-token: ${{ secrets.GH_PACKAGES_TOKEN_READ }}
+#
+#      - uses: actions/cache@v2.1.4
+#        with:
+#          key: native-${{ hashFiles('**/package-lock.json') }}
+#          path: |
+#            ~/.npm
+#            ~/.turtle
+#            ~/.gradle/wrapper
+#            node_modules
+#
+#      - uses: ahmadnassri/action-npm-global-path@v1
+#
+#      - name: Install Turtle
+#        run: npm install --silent --no-progress --global turtle-cli
+#
+#      - name: Turtle build
+#        run: turtle build:android --output app.apk --type apk --allow-non-https-public-url --public-url https://template-app.joinanswerable.com/.app/android-index.json
+#
+#      - name: Assign asset upload url [event]
+#        if: ${{ github.event.release }}
+#        run: echo "UPLOAD_URL=$${ github.event.release.upload_url }}" >> $GITHUB_ENV
+#
+#      - name: Assign asset upload url [dispatch]
+#        if: ${{ ! github.event.release }}
+#        uses: actions/github-script@v3
+#        with:
+#          github-token: ${{secrets.GITHUB_TOKEN}}
+#          script: |
+#            const { data: { upload_url } } = await github.repos.getReleaseByTag({
+#              ...context.repo,
+#              tag: context.payload.inputs.tag
+#            })
+#
+#            core.exportVariable('UPLOAD_URL', upload_url);
+#
+#      - name: Upload apk
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ env.UPLOAD_URL }}
+#          asset_path: app.apk
+#          asset_name: app.apk
+#          asset_content_type: application/zip
+#
+#  slack-notification:
+#    timeout-minutes: 2
+#
+#    if: always() # ensure this job always runs
+#    needs: [ deploy ]
+#    runs-on: ubuntu-20.04
+#    steps:
+#      - uses: ahmadnassri/action-slack-workflow-notifications@v1
+#        with:
+#          slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
+#          ignore-jobs: slack-notification

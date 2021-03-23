@@ -1,0 +1,14 @@
+runtime: nodejs12
+env: standard
+
+service: assets
+
+entrypoint: npm run run:assets
+
+handlers:
+  - url: /.*
+    secure: always
+    script: auto
+
+env_variables:
+  NODE_ENV: production
