@@ -25,9 +25,14 @@ jobs:
         with:
           node-version: 12
 
-      - uses: ahmadnassri/action-github-registry-npm-proxy@v1
+      - uses: ahmadnassri/action-npm-global-path@v1
+
+      - uses: ahmadnassri/action-github-registry-npm-proxy@v2.1
         with:
-          github-token: ${{ secrets.GH_PACKAGES_TOKEN_READ }}
+          token: ${{ secrets.GH_PACKAGES_TOKEN_READ }}
+          scope: ${{ github.repository_owner }}
+          path: ${{ github.workspace }}/.npmrc
+          export_user_config: true
 
       - uses: google-github-actions/setup-gcloud@master
         with:
@@ -38,6 +43,8 @@ jobs:
         with:
           ref: ${{ github.event.inputs.tag }}
 
+      - run: npm config get prefix
+
       - uses: actions/cache@v2.1.4
         with:
           key: app-${{ hashFiles('**/package-lock.json') }}
@@ -47,7 +54,7 @@ jobs:
             .next/cache
             node_modules
 
-      - uses: ahmadnassri/action-npm-global-path@v1
+
 
       - name: Install Expo
         run: npm install  --global expo-cli
@@ -56,8 +63,6 @@ jobs:
 
       - name: Expo export [staging]
         run: expo export --force --public-url https://staging-dot-assets-dot-rn-host.nn.r.appspot.com/ --output-dir .assets
-#        env:
-#          VERSION: 0.0.0
 
       - name: Prepare app.yml [staging]
         run: envsubst < assets.template.yaml > app.yaml
