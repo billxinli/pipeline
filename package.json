@@ -6,6 +6,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject",
+    "expo": "expo",
     "run:assets": "serve -s -l ${PORT-8080} .assets"
   },
   "dependencies": {
