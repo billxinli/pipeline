@@ -94,7 +94,6 @@ jobs:
 #          promote: true
 #
   build-android:
-    needs: deploy
 
     timeout-minutes: 30
 
@@ -108,6 +107,13 @@ jobs:
       - uses: actions/setup-node@v2.1.5
         with:
           node-version: 12
+      - uses: ahmadnassri/action-npm-global-path@v1
+        with:
+          path: ~/.npm
+
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.tag }}
 
       - uses: ahmadnassri/action-github-registry-npm-proxy@v2.1
         with:
@@ -115,10 +121,6 @@ jobs:
           scope: ${{ github.repository_owner }}
           path: ${{ github.workspace }}/.npmrc
           export_user_config: true
-
-      - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.tag }}
 
       - uses: actions/cache@v2.1.4
         with:
@@ -128,10 +130,6 @@ jobs:
             ~/.turtle
             ~/.gradle/wrapper
             node_modules
-
-      - uses: ahmadnassri/action-npm-global-path@v1
-        with:
-          path: ~/.npm
 
       - name: Install npm dependencies
         run: npm install --silent --no-progress --global turtle-cli expo-cli
