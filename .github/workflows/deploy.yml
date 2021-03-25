@@ -108,6 +108,10 @@ jobs:
         with:
           node-version: 12
 
+      - uses: ahmadnassri/action-npm-global-path@v1
+        with:
+          path: ~/.npm
+
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.tag }}
@@ -129,9 +133,10 @@ jobs:
             node_modules
 
       - name: Install npm dependencies
-        run: npm install --global turtle-cli expo-cli
-
-      - run: npm ci
+        run: |
+          yarn config list
+          npm install --global turtle-cli expo-cli
+          npm ci
 
       - name: Format Version
         run: echo "VERSION=${{ github.event.inputs.tag || github.event.release.tag_name }}" | tr . - >> $GITHUB_ENV
