@@ -30,14 +30,6 @@ jobs:
         with:
           node-version: 12
 
-      - run: |
-          mkdir -p ~/.npm/packages
-          mkdir -p ~/.npm/cache
-          npm config set prefix ~/.npm/packages
-          npm config set cache ~/.npm/cache
-          echo "$(npm --global bin)" >> $GITHUB_PATH
-          npm config get prefix
-
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.tag }}
@@ -48,6 +40,14 @@ jobs:
           scope: ${{ github.repository_owner }}
           path: ${{ github.workspace }}/.npmrc
           export_user_config: true
+
+      - run: |
+          mkdir -p ~/.npm/packages
+          mkdir -p ~/.npm/cache
+          npm config set prefix ~/.npm/packages
+          npm config set cache ~/.npm/cache
+          echo "$(npm --global bin)" >> $GITHUB_PATH
+          npm config get prefix
 
       - uses: actions/cache@v2.1.4
         with:
@@ -62,6 +62,7 @@ jobs:
         run: |
           npm install --global turtle-cli expo-cli
           npm ci
+
 
   release:
     needs: [ cache-warmer ]
