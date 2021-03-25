@@ -146,6 +146,15 @@ jobs:
         env:
           ANDROID_KEYSTORE: ${{secrets.ANDROID_KEYSTORE}}
 
+      - name: fuck yarn
+        run: |
+          echo "registry=https://registry.npmjs.org" > .npmrc
+          echo "@${{ github.repository_owner }}:registry=https://npm.pkg.github.com " >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PACKAGES_TOKEN_READ }}" >> .npmrc
+
+          echo "registry \"https://registry.npmjs.org\"" > .yarnrc
+          echo "\"@${{ github.repository_owner }}:registry\" \"https://npm.pkg.github.com\"" >> .yarnrc
+
       - name: Turtle build
         run: turtle build:android --type apk --output app-staging.apk --keystore-path keystore.jks --keystore-alias android --public-url https://staging-dot-assets-dot-rn-host.nn.r.appspot.com/android-index.json .
         env:
