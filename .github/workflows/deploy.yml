@@ -109,9 +109,12 @@ jobs:
         with:
           node-version: 12
 
-      - uses: ahmadnassri/action-github-registry-npm-proxy@v1
+      - uses: ahmadnassri/action-github-registry-npm-proxy@v2.1
         with:
-          github-token: ${{ secrets.GH_PACKAGES_TOKEN_READ }}
+          token: ${{ secrets.GH_PACKAGES_TOKEN_READ }}
+          scope: ${{ github.repository_owner }}
+          path: ${{ github.workspace }}/.npmrc
+          export_user_config: true
 
       - uses: actions/checkout@v2
         with:
