@@ -43,7 +43,13 @@ jobs:
         with:
           ref: ${{ github.event.inputs.tag }}
 
-      - run: npm config get prefix
+      - run: |
+        mkdir -p ~/.npm/packages
+        mkdir -p ~/.npm/cache
+        npm config set prefix ~/.npm/packages
+        npm config set cache ~/.npm/cache
+        echo "$(npm --global bin)" >> $GITHUB_PATH
+        npm config get prefix
 
       - uses: actions/cache@v2.1.4
         with:
